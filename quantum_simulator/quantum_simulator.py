@@ -1,5 +1,6 @@
-import numpy as np
-from scipy import sparse
+#!/usr/bin/env python3
+import numpy as np				# numerical py
+from scipy import sparse		# scientific py
 
 
 # Characters to draw the circuit
@@ -59,10 +60,12 @@ class Gate:
                 output[row_middle] += font[11].center(gate_width, font[10])
 
         if self.type_ == 'SWAP':
+            # Use an "X" to symbolize the Swap gate
             for target in targets:
                 row_middle = target * gate_distance - min_row + (gate_height // 2)
                 output[row_middle] += font[13].center(gate_width, font[10])
 
+            # control qubit line intersects qubit
             for row in all_rows_center - set(to_centers(controls + targets + crossings)):
                 output[row] += font[3].center(gate_width)
 
@@ -120,6 +123,7 @@ class QState:
         self.numbits = int(self.numbits)
 
     def __mul__(self, other):
+        # Multiply state by a scalar
         if np.isscalar(other):
             vector = self.vector * other
             return QState(vector)
@@ -127,29 +131,33 @@ class QState:
             raise ValueError('Only multiplying with a scalar is allowed')
 
     def __rmul__(self, other):
+        # Multiply state by a scalar
         return self.__mul__(other)
 
     def __add__(self, other):
+        # Add state "other" to state
         if isinstance(other, QState):
             return QState(self.vector + other.vector)
         else:
             raise ValueError('Only adding of QStates is alloed')
 
     def __radd__(self, other):
+        # Add state "other" to state
         return self.__add__(other)
 
     def __sub__(self, other):
+        # Subtract other from state
         if isinstance(other, QState):
             return QState(self.vector - other.vector)
         else:
             raise ValueError('Only subtracting of QStates is alloed')
 
     def __rsub__(self, other):
+        # Subtract state from other
         if isinstance(other, QState):
             return QState(other.vector - self.vector)
         else:
             raise ValueError('Only subtracting of QStates is alloed')
-
 
     def __repr__(self):
         # pretty-print a state as ket
