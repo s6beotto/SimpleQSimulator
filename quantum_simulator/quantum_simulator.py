@@ -122,7 +122,7 @@ class QState:
             buffer.append('\t %s %s' % (np.round(v, 3), '|{:0{}b}>'.format(i, self.numbits)))
         return '\n'.join(buffer)
 
-class QC:
+class QCircuit:
     '''
     Class representing one quantum circuit.
     It uses the scipy sparse matrix, which is an improved version that saves only non-zero elements.
@@ -555,7 +555,7 @@ class QC:
 
 # USAGE
 # create a quantum circuit object with n qubits, e.g.
-# qc = QC(3)
+# qc = QCircuit(3)
 
 # apply some gates
 # qc.H(0)               # Hadamard on the 0-th gate
@@ -571,4 +571,4 @@ class QC:
 # qc.evaluate()
 
 # Only evaluate states 000, 001, 010
-# qc.evaluate([0, 1, 2])
+# qc.evaluate([QState(i, 3) for i in range(3)])
