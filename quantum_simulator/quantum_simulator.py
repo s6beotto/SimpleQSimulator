@@ -192,7 +192,7 @@ class QCircuit:
         # Add one matrix of the form
         # a b
         # c d
-        assert target in range(self.numbits)
+        assert 0 <= target < self.numbits
 
         mask_bit = 1 << target  # bit of the target
         # Get coordinates on which the single qubit matrix gets inserted
@@ -228,8 +228,8 @@ class QCircuit:
         # 0 0 a b
         # 0 0 c d
 
-        assert target in range(self.numbits)
-        assert control in range(self.numbits)
+        assert 0 <= target < self.numbits
+        assert 0 <= control < self.numbits
         assert target != control
 
         target_bit = 1 << target  # bit of the target
@@ -269,8 +269,8 @@ class QCircuit:
         # i j k l
         # m n o p
 
-        assert target1 in range(self.numbits)
-        assert target2 in range(self.numbits)
+        assert 0 <= target1 < self.numbits
+        assert 0 <= target2 < self.numbits
         assert target1 != target2
 
         target1_bit = 1 << target1  # bit of the target
@@ -333,9 +333,9 @@ class QCircuit:
         # 0 0 0 0 0 0 a b
         # 0 0 0 0 0 0 c d
 
-        assert target in range(self.numbits)
-        assert control1 in range(self.numbits)
-        assert control2 in range(self.numbits)
+        assert 0 <= target < self.numbits
+        assert 0 <= control1 < self.numbits
+        assert 0 <= control2 < self.numbits
         assert target != control1
         assert target != control2
         assert control1 != control2
