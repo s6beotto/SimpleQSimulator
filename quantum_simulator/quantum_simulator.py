@@ -98,6 +98,30 @@ class Gate:
         # Returns the rendered output, the range of affected qubits and the range of affected row
         return output, set(range(min_qubit, max_qubit + 1)), set(range(min_row, max_row))
 
+
+class QState:
+    def __init__(self, state, numbits=None):
+        self.numbits = numbits
+        if isinstance(state, (list, np.ndarray)) and (numbits is None or len(state) == numbits ** 2):
+            self.vector = np.array(state)
+            self.numbits = np.log2(len(self.vector))
+        elif isinstance(state, (int, np.int, np.int16, np.int32, np.int64)):
+            self.vector = np.zeros(2 ** numbits)
+            self.vector[state] = 1
+        assert np.isclose(self.numbits % 1, 0)
+        self.numbits = int(self.numbits)
+
+    def __repr__(self):
+        # pretty-print a state as ket
+        vector_mask = ~np.isclose(self.vector, 0)
+        if np.isclose(np.imag(self.vector), 0).all():
+            self.vector = self.vector.real
+        buffer = []
+        for i, v in zip(np.arange(2 ** self.numbits)[vector_mask], self.vector[vector_mask]):
+            # print resultant vector with amplitude
+            buffer.append('\t %s %s' % (np.round(v, 3), '|{:0{}b}>'.format(i, self.numbits)))
+        return '\n'.join(buffer)
+
 class QC:
     '''
     Class representing one quantum circuit.
@@ -390,10 +414,6 @@ class QC:
             m = m.__matmul__(matrix)
         return m
 
-    def format_state(self, state):
-        # pretty-print a state as ket
-        return '|{:0{}b}>'.format(state, self.numbits)
-
     def evaluate(self, state=None):
         # Evaluate all (None), one (int) or a list of states (list)
 
@@ -401,12 +421,16 @@ class QC:
         if state == None:
             if self.numbits > 6:
                 raise ValueError('Please don\'t do this!')
-            states = self.allstates
+            states = [QState(state, numbits=self.numbits) for state in self.allstates]
         elif isinstance(state, int):
-            assert state in range(self.numstates)
+            assert 0 <= state < self.numstates
+            states = [QState(state, numbits=self.numbits)]
+        elif isinstance(state, QState):
             states = [state]
         elif isinstance(state, list):
             states = state
+        else:
+            raise ValueError('State of type %s not compatible' % type(state))
 
         # create matrix
         #matrix = self.compile_matrix()
@@ -414,21 +438,16 @@ class QC:
         # evaluate all states
         for state in states:
             # create input vector
-            vector = np.zeros(self.numstates)
-            vector[state] = 1
-            print(self.format_state(state), '->')
+
+            print('input:')
+            print(state)
 
             # create output vector
             for matrix in self.gates:
-                vector = matrix.dot(vector)
+                state = QState(matrix.dot(state.vector))
 
-            # create mask to accelerate print operation, only print vectors with amplitude != 0
-            vector_mask = ~np.isclose(vector, 0)
-            if np.isclose(np.imag(vector), 0).all():
-                vector = vector.real
-            for i, v in zip(self.allstates[vector_mask], vector[vector_mask]):
-                # print resultant vector with amplitude
-                print('\t', np.round(v, 3), self.format_state(i))
+            print('output:')
+            print(state)
 
     def pprint(self):
         # pretty-print the matrix, if it is reasonable
