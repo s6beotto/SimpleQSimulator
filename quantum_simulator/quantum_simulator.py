@@ -136,9 +136,12 @@ class QState:
                 raise ValueError('Vector of length 0 not allowed')
             self.vector /= length       # normalise vector
             self.numbits = np.log2(len(self.vector))
-        elif isinstance(state, (int, np.int, np.int16, np.int32, np.int64)):
+        elif isinstance(state, (int, np.int, np.int16, np.int32, np.int64)) and numbits is not None:
+            assert state < 2 ** numbits, 'State %d does not fit into %d-qubit system' % (state, numbits)
             self.vector = np.zeros(2 ** numbits, dtype=np.complex)
             self.vector[state] = 1
+        else:
+            raise ValueError('Cannot create state from given values')
         assert np.isclose(self.numbits % 1, 0)
         self.numbits = int(self.numbits)
 
@@ -200,7 +203,7 @@ class QCircuit:
 
     def __init__(self, numbits=1):
         # initialiser, numbits holds the number of qubits
-        assert numbits > 0
+        assert numbits > 0, 'QCircuit needs to have at least one qubit'
         self.numbits = numbits
         self.numstates = 2 ** self.numbits
         self.allstates = np.arange(self.numstates)
@@ -212,7 +215,7 @@ class QCircuit:
         # Add one matrix of the form
         # a b
         # c d
-        assert 0 <= target < self.numbits
+        assert 0 <= target < self.numbits, 'Qubit has to be in range(0, %d)' % self.numbits
 
         mask_bit = 1 << target  # bit of the target
         # Get coordinates on which the single qubit matrix gets inserted
@@ -248,9 +251,9 @@ class QCircuit:
         # 0 0 a b
         # 0 0 c d
 
-        assert 0 <= target < self.numbits
-        assert 0 <= control < self.numbits
-        assert target != control
+        assert 0 <= target < self.numbits, 'Qubit has to be in range(0, %d)' % self.numbits
+        assert 0 <= control < self.numbits, 'Qubit has to be in range(0, %d)' % self.numbits
+        assert target != control, 'Control and target qubits have to be different'
 
         target_bit = 1 << target  # bit of the target
         control_bit = 1 << control
@@ -289,9 +292,9 @@ class QCircuit:
         # i j k l
         # m n o p
 
-        assert 0 <= target1 < self.numbits
-        assert 0 <= target2 < self.numbits
-        assert target1 != target2
+        assert 0 <= target1 < self.numbits, 'Qubit has to be in range(0, %d)' % self.numbits
+        assert 0 <= target2 < self.numbits, 'Qubit has to be in range(0, %d)' % self.numbits
+        assert target1 != target2, 'Control and target qubits have to be different'
 
         target1_bit = 1 << target1  # bit of the target
         target2_bit = 1 << target2
@@ -353,12 +356,12 @@ class QCircuit:
         # 0 0 0 0 0 0 a b
         # 0 0 0 0 0 0 c d
 
-        assert 0 <= target < self.numbits
-        assert 0 <= control1 < self.numbits
-        assert 0 <= control2 < self.numbits
-        assert target != control1
-        assert target != control2
-        assert control1 != control2
+        assert 0 <= target < self.numbits, 'Qubit has to be in range(0, %d)' % self.numbits
+        assert 0 <= control1 < self.numbits, 'Qubit has to be in range(0, %d)' % self.numbits
+        assert 0 <= control2 < self.numbits, 'Qubit has to be in range(0, %d)' % self.numbits
+        assert target != control1, 'Control and target qubits have to be different'
+        assert target != control2, 'Control and target qubits have to be different'
+        assert control1 != control2, 'Control and target qubits have to be different'
 
         target_bit = 1 << target  # bit of the target
         control1_bit = 1 << control1
@@ -446,9 +449,9 @@ class QCircuit:
 
     def U(self, target, matrix, name='U'):
         # arbitrary unitary gate
-        assert isinstance(matrix, np.matrix)            # only np.matrix and derived classes allowed
-        assert matrix.shape == (2, 2)                   # only 2x2 matricies are allowed
-        assert np.allclose(np.eye(matrix.shape[0]), matrix.H * matrix), 'matrix not unitary'  # matrix has to be unitary
+        assert isinstance(matrix, np.matrix), 'Only np.matrix objects are allowed'
+        assert matrix.shape == (2, 2), 'Only 2x2 matrices are allowed'
+        assert np.allclose(np.eye(matrix.shape[0]), matrix.H * matrix), 'matrix not unitary'
         self.create_single_qubit_gate(target, matrix)
         self.gate_objects.append(Gate(name, targets=[target]))
 
@@ -491,7 +494,7 @@ class QCircuit:
                 raise ValueError('Please don\'t do this!')
             states = [QState(state, numbits=self.numbits) for state in self.allstates]
         elif isinstance(state, int):
-            assert 0 <= state < self.numstates
+            assert 0 <= state < self.numstates, 'State %d has to be in range(0, %d)' % (state, self.numstates)
             states = [QState(state, numbits=self.numbits)]
         elif isinstance(state, QState):
             states = [state]
@@ -542,7 +545,7 @@ class QCircuit:
         gate_separation_height = 1
         gate_distance = gate_height + gate_separation_height
 
-        assert gate_height % 2 == 1
+        assert gate_height % 2 == 1, 'Gate hight has to be an odd number'
 
         params = {
             'gate_width': gate_width,
