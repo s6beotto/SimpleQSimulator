@@ -476,7 +476,7 @@ class QCircuit:
         self.create_double_controlled_single_qubit_gate(control1, control2, target, np.array([[0, 1], [1, 0]]))
         self.gate_objects.append(Gate('X', controls=[control1, control2], targets=[target]))
 
-    def measure(self, bits=None):
+    def measure(self, state, bits=None):
         if bits == None:
             bits = np.arange(self.numbits)
         elif isinstance(bits, int):
@@ -485,7 +485,16 @@ class QCircuit:
             pass
         else:
             raise ValueError('Cannot measure %s' % bits)
-        print(bits)
+
+        state = self.apply_state(state)
+        probabilities = np.absolute(state.vector) ** 2
+        chosen = np.random.choice(self.allstates, p=probabilities)
+
+        bit_mask = sum(1 << bit for bit in bits)
+        measured_value = chosen & bit_mask
+        vector = state.vector
+        vector[np.bitwise_and(self.allstates, bit_mask) != measured_value] = 0
+        return measured_value, QState(vector)
 
     def compile_matrix(self):
         # multiplies matricies of the gates so that it has only to be done once
@@ -495,6 +504,11 @@ class QCircuit:
         for matrix in self.gates[::-1][1::]:
             m = m.__matmul__(matrix)
         return m
+
+    def apply_state(self, state: QState):
+        for matrix in self.gates:
+            state = QState(matrix.dot(state.vector))
+        return state
 
     def evaluate(self, state=None):
         # Evaluate all (None), one (int) or a list of states (list)
@@ -514,9 +528,6 @@ class QCircuit:
         else:
             raise ValueError('State of type %s not compatible' % type(state))
 
-        # create matrix
-        #matrix = self.compile_matrix()
-
         # evaluate all states
         for state in states:
             # create input vector
@@ -525,8 +536,7 @@ class QCircuit:
             print(state)
 
             # create output vector
-            for matrix in self.gates:
-                state = QState(matrix.dot(state.vector))
+            state = self.apply_state(state)
 
             print('output:')
             print(state)
