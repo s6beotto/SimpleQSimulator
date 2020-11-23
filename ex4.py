@@ -26,6 +26,9 @@ for gate in '1 X CNOT XCNOT'.split():
 
     # Apply the State |01> (in the computational basis) to the circuit
     qc.evaluate(QState(1, 2))
+    value, state = qc.measure(QState(1, 2), bits=1)
+    print('measured:', value)
+    print('function %s is %s' % (gate, 'balanced' if value else 'constant'))
 
     # Draw the circuit to the terminal
     qc.draw()
