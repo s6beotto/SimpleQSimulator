@@ -476,6 +476,17 @@ class QCircuit:
         self.create_double_controlled_single_qubit_gate(control1, control2, target, np.array([[0, 1], [1, 0]]))
         self.gate_objects.append(Gate('X', controls=[control1, control2], targets=[target]))
 
+    def measure(self, bits=None):
+        if bits == None:
+            bits = np.arange(self.numbits)
+        elif isinstance(bits, int):
+            bits = [bits]
+        elif isinstance(bits, (list, tuple, np.array)):
+            pass
+        else:
+            raise ValueError('Cannot measure %s' % bits)
+        print(bits)
+
     def compile_matrix(self):
         # multiplies matricies of the gates so that it has only to be done once
         if len(self.gates) == 0:
