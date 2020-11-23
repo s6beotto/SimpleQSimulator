@@ -476,7 +476,7 @@ class QCircuit:
         self.create_double_controlled_single_qubit_gate(control1, control2, target, np.array([[0, 1], [1, 0]]))
         self.gate_objects.append(Gate('X', controls=[control1, control2], targets=[target]))
 
-    def measure(self, state, bits=None):
+    def measure(self, state, bits=None, times=1):
         if bits == None:
             bits = np.arange(self.numbits)
         elif isinstance(bits, int):
@@ -488,13 +488,23 @@ class QCircuit:
 
         state = self.apply_state(state)
         probabilities = np.absolute(state.vector) ** 2
-        chosen = np.random.choice(self.allstates, p=probabilities)
 
-        bit_mask = sum(1 << bit for bit in bits)
-        measured_value = chosen & bit_mask
-        vector = state.vector
-        vector[np.bitwise_and(self.allstates, bit_mask) != measured_value] = 0
-        return measured_value, QState(vector)
+        if times == 1:
+            chosen = np.random.choice(self.allstates, p=probabilities)
+
+            bit_mask = sum(1 << bit for bit in bits)
+            measured_value = chosen & bit_mask
+            vector = state.vector
+            vector[np.bitwise_and(self.allstates, bit_mask) != measured_value] = 0
+            return measured_value, QState(vector)
+
+        else:
+            measured_probabilities = np.zeros_like(self.allstates)
+            for _ in range(times):
+                chosen = np.random.choice(self.allstates, p=probabilities)
+                measured_probabilities[chosen] += 1
+            measured_probabilities = measured_probabilities / times
+            return measured_probabilities
 
     def compile_matrix(self):
         # multiplies matricies of the gates so that it has only to be done once
