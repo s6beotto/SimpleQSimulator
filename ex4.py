@@ -12,15 +12,12 @@ for gate in '1 X CNOT XCNOT'.split():
 
     # Apply the gate under test
     if gate == '1':
+        # Just for clarity in the drawn circuit
         qc.U(0, np.matrix([[1, 0], [0, 1]]), name='1')
     elif gate == 'X':
         qc.X(0)
     elif gate == 'CNOT':
         qc.cnot(1, 0)
-    elif gate == 'XCNOT':
-        qc.X(1)
-        qc.cnot(1, 0)
-        qc.X(1)
 
     qc.H(1)
 
