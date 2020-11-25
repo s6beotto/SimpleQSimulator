@@ -9,7 +9,7 @@ setup(
     packages=['simpleqsimulator'],
     entry_points={
         'console_scripts': [
-            'sqs-shell = quantum_simulator.shell:start',
+            'sqs-shell = simpleqsimulator.shell:start',
         ]},
     install_requires=['IPython', 'numpy', 'scipy'],
 )
