@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from quantum_simulator.quantum_simulator import QCircuit, QState
+from simpleqsimulator import QCircuit, QState
 import numpy as np
 
 
