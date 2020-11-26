@@ -3,7 +3,7 @@ from simpleqsimulator import QCircuit, QState
 import numpy as np
 
 
-for gate in '1 X CNOT XCNOT'.split():
+for gate in '1 X CNOT'.split():
     # Create a 2 qubit-circuit
     qc = QCircuit(2)
 
