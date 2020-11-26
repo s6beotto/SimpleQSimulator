@@ -10,6 +10,8 @@ for gate in '1 X CNOT'.split():
     qc.H(0)
     qc.H(1)
 
+    print('Using a %s gate as Uf' % gate)
+
     # Apply the gate under test
     if gate == '1':
         # Just for clarity in the drawn circuit
@@ -25,7 +27,8 @@ for gate in '1 X CNOT'.split():
     qc.evaluate(QState(1, 2))
     value, state = qc.measure(QState(1, 2), bits=1)
     print('measured:', value)
-    print('function %s is %s' % (gate, 'balanced' if value else 'constant'))
+    print('function f corresponding to %s is %s' % (gate, 'balanced' if value else 'constant'))
 
     # Draw the circuit to the terminal
     qc.draw()
+    print('\n'*2)
